@@ -3,6 +3,7 @@ package com.xdx.yyh.bit.finalwork.MiniDouyin;
 import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -115,6 +117,13 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
 //        -------By yxd----------------------------
+//        网络连接
+        if(!isNetworkAvailable()){
+            Toast.makeText(getApplicationContext(), "网络未连接，请查看网络",
+                    Toast.LENGTH_LONG).show();
+        }
+
+
 //        更换头像
         portrait = findViewById(R.id.portrait);
         btn_portrait = findViewById(R.id.btn_portrait);
@@ -275,6 +284,19 @@ public class MainActivity extends AppCompatActivity
 
         }
     }
+
+
+//    查看网络连接
+private boolean isNetworkAvailable() {
+
+    // 得到网络连接信息
+    ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+    // 去进行判断网络是否连接
+    if (manager.getActiveNetworkInfo() != null) {
+        return manager.getActiveNetworkInfo().isAvailable();
+    }
+    return false;
+}
 
 //    -------------By yxd ----------------
 

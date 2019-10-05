@@ -54,6 +54,8 @@ import com.xdx.yyh.bit.finalwork.MiniDouyin.R;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+//import com.xdx.yyh.bit.finalwork.MiniDouyin.R;
+
 //import android.support.v4.view.ViewCompat;
 
 public class VerticalSeekBar extends AppCompatSeekBar {
