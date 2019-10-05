@@ -1,25 +1,25 @@
 package com.xdx.yyh.bit.finalwork.MiniDouyin;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.widget.Chronometer;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.PostVideoResponse;
@@ -71,6 +71,12 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
     public Uri mSelectedVideo;
     public MultipartBody.Part cover_image;
     public MultipartBody.Part video;
+    private ImageView light;
+    private boolean islighting = false;
+    private Camera.Parameters params;
+
+    //摄像计时
+    private Chronometer chronometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +92,98 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
         surfaceHolder = mSurfaceView.getHolder();
         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         surfaceHolder.addCallback(this);
+        params = mCamera.getParameters();
+
+
+        findViewById(R.id.btn_facing).setOnClickListener(v -> {
+            //todo 切换前后摄像头
+            if(CAMERA_TYPE == Camera.CameraInfo.CAMERA_FACING_FRONT)
+                mCamera = getCamera(Camera.CameraInfo.CAMERA_FACING_BACK);
+            else
+                mCamera = getCamera(Camera.CameraInfo.CAMERA_FACING_FRONT);
+            startPreview(surfaceHolder);
+        });
+
+//        ---------By yxd--------------------
+//        将横置摄像头换为竖直，引用库：widget
+        seekBar = findViewById(R.id.zoom);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                try
+                {
+                    Camera.Parameters params = mCamera.getParameters();
+                    final int MAX = params.getMaxZoom();
+                    seekBar.setMax(MAX);
+                    int zoomValue = params.getZoom();
+                    zoomValue = progress;
+                    params.setZoom(zoomValue);
+                    mCamera.setParameters(params);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        //todo 闪光灯
+        light = findViewById(R.id.light);
+        light.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(islighting){
+                    light.setImageResource(R.mipmap.light);
+                    params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                    mCamera.setParameters(params);
+                    islighting = false;
+                }
+                else{
+                    light.setImageResource(R.mipmap.no_light);
+                    params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                    mCamera.setParameters(params);
+                    islighting = true;
+                }
+            }
+        });
+
+//        未点击摄像，所以计时不可见,且不占空间
+        chronometer = findViewById(R.id.chronometer);
+        chronometer.setVisibility(View.GONE);
+
+//        todo 点击屏幕 自动对焦
+        findViewById(R.id.img).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mCamera != null){
+                    mCamera.autoFocus(new Camera.AutoFocusCallback() {
+                        @Override
+                        public void onAutoFocus(boolean success, Camera camera) {
+                            if(success){
+//                                Toast.makeText(VideoActivity.this,"对焦成功",Toast.LENGTH_SHORT).show();
+                            }else{
+
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+//        ------------By yxd ----------------
+
+
 
         findViewById(R.id.btn_picture).setOnClickListener(v -> {
             //todo 拍一张照片
@@ -97,10 +195,17 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
             //todo 录制，第一次点击是start，第二次点击是stop
             if (isRecording) {
                 //todo 停止录制
+
+//              ----By yxd ----
+//                计时结束
+                chronometer.stop();
+//              ----By yxd----
+
                 releaseMediaRecorder();
                 Toast.makeText(getApplicationContext(), "Stop recording!", Toast.LENGTH_LONG).show();
                 isRecording = false;
                 btn_record.setImageResource(R.drawable.ic_video);
+                chronometer.setVisibility(View.GONE);
                 //todo 跳转到PostVideo
                 Intent postvideointent = new Intent(this, PostVideo.class);
                 postvideointent.putExtra("videopath", videoPath);
@@ -108,6 +213,14 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
 
             } else {
                 //todo 录制
+
+//              ----BY yxd ----
+//                计时开始，计时可见
+                chronometer.setVisibility(View.VISIBLE);
+                chronometer.setBase(SystemClock.elapsedRealtime());
+                chronometer.start();
+//                -----BY yxd-----
+
                 prepareVideoRecorder();
                 isRecording = true;
                 Toast.makeText(getApplicationContext(), "Recording!", Toast.LENGTH_LONG).show();
@@ -115,42 +228,11 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
             }
         });
 
-        findViewById(R.id.btn_facing).setOnClickListener(v -> {
-            //todo 切换前后摄像头
-            if(CAMERA_TYPE == Camera.CameraInfo.CAMERA_FACING_FRONT)
-                mCamera = getCamera(Camera.CameraInfo.CAMERA_FACING_BACK);
-            else
-                mCamera = getCamera(Camera.CameraInfo.CAMERA_FACING_FRONT);
-            startPreview(surfaceHolder);
-        });
-
-        seekBar = findViewById(R.id.seek_bar);
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-                if(fromUser == true)
-                {
-                    zoomValue = progress;
-                    Camera.Parameters params = mCamera.getParameters();
-                    params.setZoom(zoomValue);
-                    mCamera.setParameters(params);
-                }
-
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
 
         findViewById(R.id.btn).setOnClickListener(v ->{
             initBtns();
         });
+
     }
 
 
@@ -363,7 +445,7 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
             {
                 Toast.makeText(getApplicationContext(), "Please select an image", Toast.LENGTH_LONG).show();
                 chooseImage();
-
+                mBtn.setImageResource(R.mipmap.video);
                 cnt++;
             }
             else if(cnt == 1)

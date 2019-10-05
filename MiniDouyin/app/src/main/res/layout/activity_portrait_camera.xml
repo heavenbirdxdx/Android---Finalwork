@@ -27,12 +27,20 @@
             android:src="@mipmap/light"
             android:layout_gravity="center"
             android:layout_marginTop="10dp"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="10dp"/>
+
+        <ImageView
+            android:id="@+id/btn_facing"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginBottom="10dp"
+            android:layout_gravity="center"
+            android:src="@mipmap/switchcamera" />
 
         <!--设置竖直seekbar-->
         <com.xdx.yyh.bit.finalwork.MiniDouyin.widget.VerticalSeekBarWrapper
             android:layout_width="wrap_content"
-            android:layout_height="430dp"
+            android:layout_height="400dp"
             android:layout_gravity="center">
             <com.xdx.yyh.bit.finalwork.MiniDouyin.widget.VerticalSeekBar
                 android:id="@+id/zoom"
@@ -44,15 +52,6 @@
 
     </LinearLayout>
 
-    <!--设置摄像计时-->
-    <Chronometer
-        android:id="@+id/chronometer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="110dp"
-        android:layout_centerHorizontal="true"
-        android:textColor="	#F5FFFA" />
     <!-- By yxd-->
 
     <LinearLayout
@@ -71,46 +70,6 @@
             android:layout_weight="1"
             android:layout_margin="@dimen/fab_margin"
             app:srcCompat="@drawable/ic_camera" />
-
-
-        <!--<Button-->
-            <!--android:id="@+id/btn_picture"-->
-            <!--android:layout_width="90dp"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_weight="1"-->
-            <!--android:text="picture" />-->
-
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/btn_record"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_weight="1"
-            android:layout_margin="@dimen/fab_margin"
-            app:srcCompat="@drawable/ic_video" />
-        <!--<Button-->
-            <!--android:id="@+id/btn_record"-->
-            <!--android:layout_width="90dp"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_weight="1"-->
-            <!--android:text="record" />-->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/btn_facing"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_weight="1"
-            android:layout_margin="@dimen/fab_margin"
-            app:srcCompat="@drawable/ic_refresh" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/btn"
-            android:layout_width="90dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/ic_select_photo"
-            />
 
     </LinearLayout>
 

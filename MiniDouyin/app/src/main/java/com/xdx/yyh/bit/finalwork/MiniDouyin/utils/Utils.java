@@ -101,8 +101,8 @@ public class Utils {
      * Create a File for saving an image or video
      */
     public static File getOutputMediaFile(int type) {
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "CameraDemo");
+        File mediaStorageDir = new File(Environment.getExternalStorageDirectory()
+                + "/finger/");
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
                 return null;
@@ -123,6 +123,20 @@ public class Utils {
         }
 
         return mediaFile;
+
+//        Date date = new Date();
+//        SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss"); // 格式化时间
+//        String filename = format.format(date) + ".jpg";
+//        File fileFolder = new File(Environment.getExternalStorageDirectory()
+//                + "/finger/");
+//        if (!fileFolder.exists()) { // 如果目录不存在，则创建一个名为"finger"的目录
+//            fileFolder.mkdir();
+//        }
+//        File jpgFile = new File(fileFolder, filename);
+//        FileOutputStream outputStream = new FileOutputStream(jpgFile); // 文件输出流
+//        outputStream.write(data); // 写入sd卡中
+//        outputStream.close(); // 关闭输出流
+//        return jpgFile;
     }
 
 

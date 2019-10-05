@@ -22,20 +22,39 @@
 
     <include layout="@layout/content_main" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
+    <ImageView
+        android:id="@+id/portrait"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="65dp"
+        app:srcCompat="@mipmap/yellowchic"
+        android:layout_gravity="center_horizontal"/>
+
+    <!--By yxd-->
+    <!--更换头像-->
+    <Button
+        android:id="@+id/btn_portrait"
         android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="220dp"
+        android:layout_gravity="center_horizontal"
+        android:text="更换头像" />
+
+    <!--进入添加视频页面的动态按钮-->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/fab"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:layout_gravity="bottom|center"
-        android:layout_margin="36dp"
-        android:scaleType="center"
         app:borderWidth="0.0dip"
-        app:fabSize="normal"
         app:layout_anchorGravity="bottom|center"
         app:elevation="10dp"
-        app:pressedTranslationZ="20dp"
-        app:rippleColor="#112233"
-    app:srcCompat="@drawable/ic_add" />
+        app:lottie_autoPlay="false"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/add"
+        />
+
+    <!--By yxd-->
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
     <!--android:layout_height="wrap_content"-->
