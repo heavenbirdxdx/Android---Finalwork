@@ -3,10 +3,13 @@ package com.xdx.yyh.bit.finalwork.MiniDouyin;
 import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -22,9 +25,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,13 +39,21 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.facebook.stetho.Stetho;
 import com.google.android.material.navigation.NavigationView;
+import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.Person;
+import com.xdx.yyh.bit.finalwork.MiniDouyin.database.PersonDb;
+import com.xdx.yyh.bit.finalwork.MiniDouyin.database.PersonDbHelper;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.utils.Utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 @SuppressLint("SdCardPath")
 public class MainActivity extends AppCompatActivity
@@ -56,6 +67,12 @@ public class MainActivity extends AppCompatActivity
     private static String path = "/sdcard/finger";
     private Uri portraitUri;
     private File imgFile;
+    private TextView tv_num;
+    private TextView tv_name;
+    private  TextView tv_birth;
+    private  TextView tv_date;
+
+    private PersonDbHelper mPersonDbHelper = new PersonDbHelper(this);
 
     private static final String TAG = "ChangePortrait";
     private static final int REQUEST_PORTRAIT_CAMERA = 1;
@@ -71,6 +88,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Stetho.initializeWithDefaults(this);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -82,30 +100,38 @@ public class MainActivity extends AppCompatActivity
         ObjectAnimator alphaAnimationView = ObjectAnimator.ofFloat( fab,
                 "alpha",1.0f,0.0f
         );
+
+        tv_num = findViewById(R.id.num);
+        tv_name = findViewById(R.id.name);
+        tv_birth = findViewById(R.id.birth);
+        tv_date = findViewById(R.id.date);
+
+//        判断权限
+        if (ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                ||ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]
+                            {Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                    Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.CAMERA},
+                    REQUEST_CODE);
+//                        startActivity(new Intent(MainActivity.this, CustomCameraActivity.class));
+
+        }
+
 //        ------------By yxd------------
 
+//        设置权限
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-                        ||ContextCompat.checkSelfPermission(MainActivity.this,
-                        Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-                        || ContextCompat.checkSelfPermission(MainActivity.this,
-                        Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-                        || ContextCompat.checkSelfPermission(MainActivity.this,
-                        Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
-                    {
-                        ActivityCompat.requestPermissions(MainActivity.this,
-                            new String[]
-                                    {Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.CAMERA},
-                            REQUEST_CODE);
-//                        startActivity(new Intent(MainActivity.this, CustomCameraActivity.class));
-
-                    }
-                else {
-                    startActivity(new Intent(MainActivity.this, CustomCameraActivity.class));
-                }
+                startActivity(new Intent(MainActivity.this, CustomCameraActivity.class));
             }
         });
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -127,6 +153,7 @@ public class MainActivity extends AppCompatActivity
 //        更换头像
         portrait = findViewById(R.id.portrait);
         btn_portrait = findViewById(R.id.btn_portrait);
+
 
         btn_portrait.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -156,7 +183,6 @@ public class MainActivity extends AppCompatActivity
                                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,fileUri);
                                        }
                                        startActivityForResult(takePictureIntent, REQUEST_PORTRAIT_CAMERA);
-
                                        break;
                                    case "从相册中选":
                                        Intent intentAlbum = new Intent(Intent.ACTION_PICK, null);
@@ -173,12 +199,32 @@ public class MainActivity extends AppCompatActivity
                 alertDialog.show();
             }
         });
+//
+////        预先加入
+//         TODO 插入一条新数据，返回是否插入成功
+        if(!loadPersonInfoFromDatabase("1120172169")){
+            SQLiteDatabase db = mPersonDbHelper.getWritableDatabase();
+            ContentValues values = new ContentValues();
+
+            String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+            values.put(PersonDb.PersonInfo.COLUMN_NUM_TITLE,"1120172169");
+            values.put(PersonDb.PersonInfo.COLUMN_NAME_TITLE, "杨训迪");
+            values.put(PersonDb.PersonInfo.COLUMN_BIRTHDAY_TITLE,"1999-11-30");
+            values.put(PersonDb.PersonInfo.COLUMN_DATE_TITLE, timeStamp);
+            values.put(PersonDb.PersonInfo.COLUMN_PORTRAIT_TITLE,"R.mipmap.yellowchic");
+            long newRowId = db.insert(PersonDb.PersonInfo.TABLE_NAME,null,values);
+            loadPersonInfoFromDatabase("1120172169");
+        }
+
+//
+
 
 //        -------By yxd-----------------------------
     }
 
 // -------------By yxd --------------------
 
+//    接受点击更换头像后的返回信息
     @Override
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -193,8 +239,6 @@ public class MainActivity extends AppCompatActivity
                 int targetW = portrait.getWidth();
                 int targetH = portrait.getHeight();
                 BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                bmOptions.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(imgFile.getAbsolutePath(),bmOptions);
                 int photoW = bmOptions.outWidth;
                 int photoH = bmOptions.outHeight;
                 int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
@@ -210,12 +254,29 @@ public class MainActivity extends AppCompatActivity
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                portrait.setImageBitmap(bmp);
+                if(updatePersonPortraitFromDatabase(imgFile.getAbsolutePath(),"1120172169")){
+                    portrait.setImageBitmap(bmp);
+                }
+                else{
+                    Toast.makeText(getApplicationContext(), "更换错误!!!",
+                            Toast.LENGTH_LONG).show();
+                }
 
+//                更新本地数据库
 
             }
             else if (requestCode == REQUEST_PORTRAIT_STORAGE) {
-                cropPhoto(data.getData());
+
+//                更新本地数据库
+                Uri imgUri = data.getData();
+                String imgPath = getImagePath(imgUri,null);
+                if(updatePersonPortraitFromDatabase(imgPath,"1120172169")){
+                    cropPhoto(imgUri);
+                }
+                else{
+                    Toast.makeText(getApplicationContext(), "更换错误!!!",
+                            Toast.LENGTH_LONG).show();
+                }
             }
             else if(requestCode == 3){
                 if (data != null) {
@@ -287,16 +348,18 @@ public class MainActivity extends AppCompatActivity
 
 
 //    查看网络连接
-private boolean isNetworkAvailable() {
+    private boolean isNetworkAvailable() {
 
-    // 得到网络连接信息
-    ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-    // 去进行判断网络是否连接
-    if (manager.getActiveNetworkInfo() != null) {
-        return manager.getActiveNetworkInfo().isAvailable();
+        // 得到网络连接信息
+        ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        // 去进行判断网络是否连接
+        if (manager.getActiveNetworkInfo() != null) {
+            return manager.getActiveNetworkInfo().isAvailable();
+        }
+        return false;
+
+
     }
-    return false;
-}
 
 //    -------------By yxd ----------------
 
@@ -373,26 +436,6 @@ private boolean isNetworkAvailable() {
         return true;
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (permissions.length == 0 || grantResults.length == 0) {
-            return;
-        }
-
-        switch (requestCode) {
-            case REQUST_CODE_CAMERA_AUDIO_STORAGE: {
-                for (int i = 0; i < grantResults.length - 1; i++) {
-                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                        Toast.makeText(getApplicationContext(), "授权成功", Toast.LENGTH_LONG).show();
-                    } else if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                        Toast.makeText(getApplicationContext(), "授权失败", Toast.LENGTH_LONG).show();
-                    }
-                }
-                break;
-            }
-        }
-    }
 
     public static Bitmap rotateImage(Bitmap bitmap, String path) throws Exception{
         ExifInterface srcExif = new ExifInterface(path);
@@ -415,4 +458,117 @@ private boolean isNetworkAvailable() {
         matrix.postRotate(angle);
         return Bitmap.createBitmap(bitmap, 0, 0,bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
+
+    @Override
+    protected void onDestroy() {
+        mPersonDbHelper.close();
+        super.onDestroy();
+    }
+
+//    -------------by  yxd------------
+//    启动时，将数据库中的1120172169的信息加载进来
+    public boolean loadPersonInfoFromDatabase(String number){
+        SQLiteDatabase db = mPersonDbHelper.getReadableDatabase();
+        String[] projection = {
+                PersonDb.PersonInfo.COLUMN_ID_TITLE,
+                PersonDb.PersonInfo.COLUMN_NUM_TITLE,
+                PersonDb.PersonInfo.COLUMN_NAME_TITLE,
+                PersonDb.PersonInfo.COLUMN_BIRTHDAY_TITLE,
+                PersonDb.PersonInfo.COLUMN_DATE_TITLE ,
+                PersonDb.PersonInfo.COLUMN_PORTRAIT_TITLE
+        };
+        String selection = PersonDb.PersonInfo.COLUMN_NUM_TITLE + " =" + number;
+
+//        用于替换上一个参数中的 ？ ,顺序对应selection中？的顺序。格式限制为String格式。
+//        String[] selectionArgs = {"My Title"};
+
+//        排序方式
+        String sortOrder =
+                PersonDb.PersonInfo.COLUMN_ID_TITLE + " ASC";
+        if(db == null){
+            return false;
+        }
+        List<Person> result = new LinkedList<>();
+        Cursor cursor = null;
+
+        try{
+            cursor = db.query(PersonDb.PersonInfo.TABLE_NAME, projection,
+                    selection, null,null,null, sortOrder);
+            while(cursor.moveToNext()){
+                int id = cursor.getInt(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_ID_TITLE));
+                String num = cursor.getString(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_NUM_TITLE));
+                String name = cursor.getString(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_NAME_TITLE));
+                String birth = cursor.getString(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_BIRTHDAY_TITLE));
+                String portraitPath = cursor.getString(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_PORTRAIT_TITLE));
+                String dateMs = cursor.getString(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_DATE_TITLE));
+                Person person = new Person(id);
+                person.setNum(num);
+                person.setName(name);
+                person.setBirth(birth);
+                person.setDate(dateMs);
+                person.setPortrait(portraitPath);
+                tv_num.setText(num);
+                tv_name.setText(name);
+                tv_birth.setText(birth);
+                tv_date.setText(dateMs);
+//
+                Bitmap bmp;
+                if(portraitPath.equals(new String ("R.mipmap.yellowchic"))){
+                    bmp=BitmapFactory.decodeResource(getResources(),R.mipmap.yellowchic);
+                }
+                else{
+                    bmp = BitmapFactory.decodeFile(portraitPath);
+                }
+                portrait.setImageBitmap(bmp);
+
+                result.add(person);
+
+            }
+        }finally {
+            cursor.close();
+            if(result.size()!=0){
+                return true;
+            }
+            else
+                return false;
+        }
+    }
+
+//    更新本地数据库的头像portrait
+    public boolean updatePersonPortraitFromDatabase(String imgPath, String num){
+        SQLiteDatabase db = mPersonDbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(PersonDb.PersonInfo.COLUMN_PORTRAIT_TITLE,
+                imgPath);
+
+        String[] numArray = {"1120172169"};
+
+        int count = db.update(PersonDb.PersonInfo.TABLE_NAME, values,
+                PersonDb.PersonInfo.COLUMN_NUM_TITLE + "=?", numArray);
+
+        db.close();
+        if(count > 0)
+            return true;
+        else
+            return false;
+    }
+
+//    content://格式的Uri转path
+    private String getImagePath(Uri uri,String selection){
+        String path = null;
+        //通过Uri和selection来获取真实的图片路径
+        Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+            }
+            cursor.close();
+        }
+        return path;
+
+    }
+
+//    -----------by yxd--------------
+
 }

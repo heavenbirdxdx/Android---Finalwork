@@ -27,7 +27,7 @@
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_marginTop="65dp"
-        app:srcCompat="@mipmap/yellowchic"
+        app:srcCompat="@mipmap/head"
         android:layout_gravity="center_horizontal"/>
 
     <!--By yxd-->

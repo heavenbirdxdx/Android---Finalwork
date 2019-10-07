@@ -29,7 +29,7 @@
                 android:fontFamily="monospace"
                 />
             <TextView
-                android:id="@+id/id"
+                android:id="@+id/num"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1120172169"
@@ -57,7 +57,7 @@
                 android:id="@+id/name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="杨训迪"
+                android:text="杨启迪迪"
                 android:textColor="#3C3A3A"
                 android:textSize="20dp"
                 android:fontFamily="monospace"/>
@@ -79,7 +79,7 @@
                 android:fontFamily="monospace"
                 />
             <TextView
-                android:id="@+id/birthday"
+                android:id="@+id/birth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="11.30"
@@ -104,7 +104,7 @@
                 android:fontFamily="monospace"
                 />
             <TextView
-                android:id="@+id/news"
+                android:id="@+id/date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="09.30"
