@@ -1,45 +1,30 @@
 package com.xdx.yyh.bit.finalwork.MiniDouyin;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.Feed;
+import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.LoginPerson;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.PostVideoResponse;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.newtork.IMiniDouyinService;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.utils.ResourceUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -50,7 +35,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.Multipart;
 
 public class PostVideo extends AppCompatActivity {
 
@@ -69,10 +53,14 @@ public class PostVideo extends AppCompatActivity {
     public MultipartBody.Part video;
     private Uri videoUri;
 
+    public LoginPerson loginPerson;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ConstraintLayout constraintLayout = new ConstraintLayout(this);
         setContentView(R.layout.activity_record_video);
+
+        loginPerson = (LoginPerson)getApplication();
 
         button_post = findViewById(R.id.btn_post);
         videoView = findViewById(R.id.videoview);
@@ -122,9 +110,9 @@ public class PostVideo extends AppCompatActivity {
         Bitmap bitmap=mmr.getFrameAtTime();
         Toast.makeText(getApplicationContext(), "Posting", Toast.LENGTH_LONG).show();
         File file = saveImg(bitmap);
-        cover_image  = getMultipartFromUri("cover_image", Uri.fromFile(file));
+        cover_image  = getMultipartFromUri("image_url", Uri.fromFile(file));
 
-        video = getMultipartFromUri("video", videoUri);
+        video = getMultipartFromUri("video_url", videoUri);
         Call<PostVideoResponse> postVideoResponseCall = getResponseWithRetrofitAsync(this);
         mPostVideoResponse.add(postVideoResponseCall);
 //        Log.i(TAG, "postVideo: ");
@@ -146,15 +134,16 @@ public class PostVideo extends AppCompatActivity {
 
     }
 
-    public static Call<PostVideoResponse> getResponseWithRetrofitAsync(PostVideo obj) {
+    public  Call<PostVideoResponse> getResponseWithRetrofitAsync(PostVideo obj) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://test.androidcamp.bytedance.com/mini_douyin/")
+                .baseUrl("https://douyin.fkynjyq.com/api/video/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         return retrofit.create(IMiniDouyinService.class).postVideo(
-                "1120173454",
-                "XDX",
+                "https://douyin.fkynjyq.com/api/video/",
+                loginPerson.getLoginPerson().getNum(),
+                loginPerson.getLoginPerson().getName(),
                 obj.cover_image,
                 obj.video
         );

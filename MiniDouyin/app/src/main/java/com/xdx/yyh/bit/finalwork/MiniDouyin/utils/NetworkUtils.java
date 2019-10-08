@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
 
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -72,11 +73,16 @@ public class NetworkUtils {
     }
 
     public static Call<FeedResponse> getResponseWithRetrofitAsync2() {
+
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://test.androidcamp.bytedance.com/mini_douyin/")
+                .baseUrl("https://douyin.fkynjyq.com/api/video/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        return retrofit.create(IMiniDouyinService.class).getVideo();
+        IMiniDouyinService iMiniDouyinService = retrofit.create(IMiniDouyinService.class);
+        return iMiniDouyinService.getVideo("https://douyin.fkynjyq.com/api/video");
     }
 
 }

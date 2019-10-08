@@ -11,7 +11,7 @@ import java.util.List;
 public class FeedResponse {
 
     // TODO-C2 (2) Implement your FeedResponse Bean here according to the response json
-    @SerializedName("feeds") private List<Feed> feeds;
+    @SerializedName("feed") private List<Feed> feeds;
 
     public List<Feed> getFeeds() {
         return feeds;

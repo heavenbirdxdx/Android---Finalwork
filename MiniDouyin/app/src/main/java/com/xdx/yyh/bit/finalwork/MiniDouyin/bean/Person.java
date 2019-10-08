@@ -55,4 +55,5 @@ public class Person {
     public void setPortrait(String portrait) {
         this.portrait = portrait;
     }
+
 }

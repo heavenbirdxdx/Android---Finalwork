@@ -1,33 +1,21 @@
 package com.xdx.yyh.bit.finalwork.MiniDouyin;
 
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.media.Image;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -35,24 +23,14 @@ import com.bumptech.glide.Glide;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.Feed;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.FeedResponse;
-import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.PostVideoResponse;
-import com.xdx.yyh.bit.finalwork.MiniDouyin.newtork.IMiniDouyinService;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.utils.NetworkUtils;
-import com.xdx.yyh.bit.finalwork.MiniDouyin.utils.ResourceUtils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.Inflater;
 
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class VideoWatch extends AppCompatActivity {
 
@@ -212,9 +190,14 @@ public class VideoWatch extends AppCompatActivity {
         feedcall.enqueue(new Callback<FeedResponse>() {
             @Override
             public void onResponse(Call<FeedResponse> call, Response<FeedResponse> response) {
-                mFeeds = response.body().getFeeds();
-                mRv.getAdapter().notifyDataSetChanged();
-                mFeedsListCall.remove(call);
+                if (response.isSuccessful()){
+                    mFeeds = response.body().getFeeds();
+                    mRv.getAdapter().notifyDataSetChanged();
+                    mFeedsListCall.remove(call);
+                }
+               else{
+                    Toast.makeText(VideoWatch.this, "fetch feed failure!", Toast.LENGTH_LONG).show();
+                }
             }
 
             @Override

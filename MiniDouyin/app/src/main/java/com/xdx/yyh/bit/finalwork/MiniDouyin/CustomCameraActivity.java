@@ -22,6 +22,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.LoginPerson;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.PostVideoResponse;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.newtork.IMiniDouyinService;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.utils.ResourceUtils;
@@ -78,6 +79,9 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
     //摄像计时
     private Chronometer chronometer;
 
+//    全局变量用户
+    public LoginPerson loginPerson;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +89,8 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_custom_camera);
+
+        loginPerson = (LoginPerson) getApplication();
 
         mCamera = getCamera(CAMERA_TYPE);
         mSurfaceView = findViewById(R.id.img);
@@ -350,6 +356,8 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
         mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
 
         videoPath = getOutputMediaFile(MEDIA_TYPE_VIDEO).toString();
+
+        Log.i("遥遥",videoPath);
         mMediaRecorder.setOutputFile(videoPath);
 //        mMediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO));
 
@@ -436,27 +444,27 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
     }
 
 
-    private static int cnt = 0;
+    private int cnt = 0;
     private void initBtns() {
         mBtn = findViewById(R.id.btn);
         mBtn.setOnClickListener(v -> {
 
             if(cnt == 0)
             {
-                Toast.makeText(getApplicationContext(), "Please select an image", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Please select an image", Toast.LENGTH_SHORT).show();
                 chooseImage();
-                mBtn.setImageResource(R.mipmap.video);
                 cnt++;
+                mBtn.setImageResource(R.drawable.ic_menu_slideshow);
             }
             else if(cnt == 1)
             {
-                Toast.makeText(getApplicationContext(), "Please select a video", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Please select a video", Toast.LENGTH_SHORT).show();
                 chooseVideo();
-                mBtn.setImageResource(R.drawable.ic_posting);
                 cnt++;
+                mBtn.setImageResource(R.drawable.ic_posting);
+
             }
             else{
-                Toast.makeText(getApplicationContext(), "Post it!", Toast.LENGTH_LONG).show();
                 mBtn.setImageResource(R.drawable.ic_menu_gallery);
                 postVideo();
                 Toast.makeText(getApplicationContext(), "Posting……", Toast.LENGTH_LONG).show();
@@ -496,6 +504,7 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
             } else if (requestCode == PICK_VIDEO) {
                 mSelectedVideo = data.getData();
                 Log.i(TAG, "mSelectedVideo = " + mSelectedVideo);
+                Toast.makeText(getApplicationContext(), "Post it!", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -513,8 +522,8 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
         // TODO-C2 (6) Send Request to post a video with its cover image
         // if success, make a text Toast and show
 
-        cover_image = getMultipartFromUri("cover_image", mSelectedImage);
-        video = getMultipartFromUri("video", mSelectedVideo);
+        cover_image = getMultipartFromUri("image_url", mSelectedImage);
+        video = getMultipartFromUri("video_url", mSelectedVideo);
         Call<PostVideoResponse> postVideoResponseCall = getResponseWithRetrofitAsync(this);
         mPostVideoResponse.add(postVideoResponseCall);
         Log.i(TAG, "postVideo: ");
@@ -535,15 +544,18 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
         });
 
     }
-    public static Call<PostVideoResponse> getResponseWithRetrofitAsync(CustomCameraActivity obj) {
+    public  Call<PostVideoResponse> getResponseWithRetrofitAsync(CustomCameraActivity obj) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://test.androidcamp.bytedance.com/mini_douyin/")
+                .baseUrl("https://douyin.fkynjyq.com/api/video/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        return retrofit.create(IMiniDouyinService.class).postVideo(
-                "1120173454",
-                "XDX",
+        IMiniDouyinService iMiniDouyinService = retrofit.create(IMiniDouyinService.class);
+
+        return iMiniDouyinService.postVideo(
+                "https://douyin.fkynjyq.com/api/video/",
+                loginPerson.getLoginPerson().getNum(),
+                loginPerson.getLoginPerson().getName(),
                 obj.cover_image,
                 obj.video
         );

@@ -41,6 +41,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.airbnb.lottie.LottieAnimationView;
 import com.facebook.stetho.Stetho;
 import com.google.android.material.navigation.NavigationView;
+import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.LoginPerson;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.Person;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.database.PersonDb;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.database.PersonDbHelper;
@@ -71,6 +72,8 @@ public class MainActivity extends AppCompatActivity
     private TextView tv_name;
     private  TextView tv_birth;
     private  TextView tv_date;
+    public LoginPerson loginPerson;
+
 
     private PersonDbHelper mPersonDbHelper = new PersonDbHelper(this);
 
@@ -507,23 +510,31 @@ public class MainActivity extends AppCompatActivity
                 person.setBirth(birth);
                 person.setDate(dateMs);
                 person.setPortrait(portraitPath);
-                tv_num.setText(num);
-                tv_name.setText(name);
-                tv_birth.setText(birth);
-                tv_date.setText(dateMs);
-//
-                Bitmap bmp;
-                if(portraitPath.equals(new String ("R.mipmap.yellowchic"))){
-                    bmp=BitmapFactory.decodeResource(getResources(),R.mipmap.yellowchic);
-                }
-                else{
-                    bmp = BitmapFactory.decodeFile(portraitPath);
-                }
-                portrait.setImageBitmap(bmp);
 
                 result.add(person);
 
             }
+
+            Person person = result.get(0);
+
+            tv_num.setText(person.getNum());
+            tv_name.setText(person.getName());
+            tv_birth.setText(person.getBirth());
+            tv_date.setText(person.getDate());
+
+            Bitmap bmp;
+            String portraitPath =person.getPortrait();
+            if(portraitPath.equals(new String ("R.mipmap.yellowchic"))){
+                bmp=BitmapFactory.decodeResource(getResources(),R.mipmap.yellowchic);
+            }
+            else{
+                bmp = BitmapFactory.decodeFile(portraitPath);
+            }
+            portrait.setImageBitmap(bmp);
+
+            loginPerson = (LoginPerson)getApplication();
+            loginPerson.setLoginPerson(person);
+
         }finally {
             cursor.close();
             if(result.size()!=0){
