@@ -1,7 +1,6 @@
 package com.xdx.yyh.bit.finalwork.MiniDouyin;
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -23,7 +22,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +44,7 @@ import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.Person;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.database.PersonDb;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.database.PersonDbHelper;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.utils.Utils;
+import com.xdx.yyh.bit.finalwork.MiniDouyin.widget.SendMsg;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -63,16 +62,20 @@ public class MainActivity extends AppCompatActivity
     private final int REQUEST_CODE = 11;
     private static final int REQUST_CODE_CAMERA_AUDIO_STORAGE = 1;
     private ImageView portrait;
-    private Button btn_portrait;
+    private LottieAnimationView  btn_portrait;
     private Bitmap bitmap_portrait;
     private static String path = "/sdcard/finger";
-    private Uri portraitUri;
     private File imgFile;
     private TextView tv_num;
     private TextView tv_name;
     private  TextView tv_birth;
     private  TextView tv_date;
     public LoginPerson loginPerson;
+    private ImageView portrait2;
+    private TextView tv_name2;
+    private TextView tv_birth2;
+
+    private  NavigationView navigationView ;
 
 
     private PersonDbHelper mPersonDbHelper = new PersonDbHelper(this);
@@ -95,19 +98,23 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        View headerLayout = navigationView.inflateHeaderView(R.layout.nav_header_main);
+
 //        -------By yxd ----------------
 //        播放动画
         LottieAnimationView fab = findViewById(R.id.fab);
 
         fab.playAnimation();
-        ObjectAnimator alphaAnimationView = ObjectAnimator.ofFloat( fab,
-                "alpha",1.0f,0.0f
-        );
 
         tv_num = findViewById(R.id.num);
+//        tv_name.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
         tv_name = findViewById(R.id.name);
         tv_birth = findViewById(R.id.birth);
         tv_date = findViewById(R.id.date);
+        portrait2 = headerLayout.findViewById(R.id.portrait2);
+        tv_name2 = headerLayout.findViewById(R.id.tv_name2);
+        tv_birth2 = headerLayout.findViewById(R.id.tv_birth2);
 
 //        判断权限
         if (ContextCompat.checkSelfPermission(MainActivity.this,
@@ -156,10 +163,9 @@ public class MainActivity extends AppCompatActivity
 //        更换头像
         portrait = findViewById(R.id.portrait);
         btn_portrait = findViewById(R.id.btn_portrait);
-
+//        btn_portrait.playAnimation();
 
         btn_portrait.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View v) {
 //                跳出弹窗选择, 选择是拍照还是选照片
                 final String[] items = new String[]{"拍照", "从相册中选"};
@@ -170,31 +176,31 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
 //                                dialogInterface.dismiss();
-                               switch (items[i]){
-                                   case "拍照":
+                                switch (items[i]){
+                                    case "拍照":
 //                                       自定义相机
 //                                       Intent intentCamera = new Intent();
 //                                       intentCamera.setClass(MainActivity.this,PortraitCameraActivity.class);
 //                                       startActivityForResult(intentCamera,1);
 
 //                                         调用系统相机
-                                       Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                       imgFile = Utils.getOutputMediaFile(Utils.MEDIA_TYPE_IMAGE);
-                                       if(imgFile != null){
-                                           Uri fileUri =
-                                                   FileProvider.getUriForFile(MainActivity.this,"com.xdx.yyh.bit.finalwork.MiniDouyin",imgFile);
-                                           takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,fileUri);
-                                       }
-                                       startActivityForResult(takePictureIntent, REQUEST_PORTRAIT_CAMERA);
-                                       break;
-                                   case "从相册中选":
-                                       Intent intentAlbum = new Intent(Intent.ACTION_PICK, null);
-                                       intentAlbum.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
-                                       startActivityForResult(Intent.createChooser(intentAlbum, "Select Picture"), REQUEST_PORTRAIT_STORAGE);
-                                       break;
-                                   default:
-                                       break;
-                               }
+                                        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                        imgFile = Utils.getOutputMediaFile(Utils.MEDIA_TYPE_IMAGE);
+                                        if(imgFile != null){
+                                            Uri fileUri =
+                                                    FileProvider.getUriForFile(MainActivity.this,"com.xdx.yyh.bit.finalwork.MiniDouyin",imgFile);
+                                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,fileUri);
+                                        }
+                                        startActivityForResult(takePictureIntent, REQUEST_PORTRAIT_CAMERA);
+                                        break;
+                                    case "从相册中选":
+                                        Intent intentAlbum = new Intent(Intent.ACTION_PICK, null);
+                                        intentAlbum.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+                                        startActivityForResult(Intent.createChooser(intentAlbum, "Select Picture"), REQUEST_PORTRAIT_STORAGE);
+                                        break;
+                                    default:
+                                        break;
+                                }
 //                                Toast.makeText(MainActivity.this, "点的是：" + items[i], Toast.LENGTH_SHORT).show();
                             }
                         })
@@ -237,35 +243,14 @@ public class MainActivity extends AppCompatActivity
         if (resultCode == RESULT_OK) {
 
             if (requestCode == REQUEST_PORTRAIT_CAMERA) {
-//                cropPhoto(Uri.fromFile(imgFile));
-//                //todo 根据imageView裁剪
-                int targetW = portrait.getWidth();
-                int targetH = portrait.getHeight();
-                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                int photoW = bmOptions.outWidth;
-                int photoH = bmOptions.outHeight;
-                int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
-                bmOptions.inJustDecodeBounds = false;
-                bmOptions.inSampleSize = scaleFactor;
-                bmOptions.inPurgeable = true;
-
-                //todo 根据缩放比例读取文件，生成Bitmap
-                Bitmap bmp = BitmapFactory.decodeFile(imgFile.getAbsolutePath(), bmOptions);
-                //todo 如果存在预览方向改变，进行图片旋转
-                try {
-                    bmp = rotateImage(bmp, imgFile.getAbsolutePath());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
                 if(updatePersonPortraitFromDatabase(imgFile.getAbsolutePath(),"1120172169")){
-                    portrait.setImageBitmap(bmp);
+                    cropPhoto(getImageContentUri(this,imgFile));
                 }
                 else{
                     Toast.makeText(getApplicationContext(), "更换错误!!!",
                             Toast.LENGTH_LONG).show();
                 }
 
-//                更新本地数据库
 
             }
             else if (requestCode == REQUEST_PORTRAIT_STORAGE) {
@@ -290,6 +275,7 @@ public class MainActivity extends AppCompatActivity
                          */
 //                        setPicToView(bitmap_portrait);//保存在SD卡中
                         portrait.setImageBitmap(bitmap_portrait);//用ImageView显示出来
+                        portrait2.setImageBitmap(bitmap_portrait);
                     }
                 }
             }
@@ -431,7 +417,7 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
-
+            startActivity(new Intent(MainActivity.this, SendMsg.class));
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -521,16 +507,23 @@ public class MainActivity extends AppCompatActivity
             tv_name.setText(person.getName());
             tv_birth.setText(person.getBirth());
             tv_date.setText(person.getDate());
+            tv_name2.setText(person.getName());
+            tv_birth2.setText(person.getBirth());
 
             Bitmap bmp;
             String portraitPath =person.getPortrait();
             if(portraitPath.equals(new String ("R.mipmap.yellowchic"))){
                 bmp=BitmapFactory.decodeResource(getResources(),R.mipmap.yellowchic);
+//                portrait.setImageBitmap(bmp);
+//                portrait2.setImageBitmap(bmp);
+
             }
             else{
                 bmp = BitmapFactory.decodeFile(portraitPath);
+//                cropPhoto(Uri.fromFile(new File(portraitPath)));
             }
             portrait.setImageBitmap(bmp);
+            portrait2.setImageBitmap(bmp);
 
             loginPerson = (LoginPerson)getApplication();
             loginPerson.setLoginPerson(person);
@@ -581,5 +574,34 @@ public class MainActivity extends AppCompatActivity
     }
 
 //    -----------by yxd--------------
+    /**
+     * Gets the content:// URI  from the given corresponding path to a file
+     * @param context
+     * @param imageFile
+     * @return content Uri
+     */
+    public static Uri getImageContentUri(Context context, java.io.File imageFile) {
+        String filePath = imageFile.getAbsolutePath();
+        Cursor cursor = context.getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Images.Media._ID},
+                MediaStore.Images.Media.DATA + "=? ",
+                new String[]{filePath}, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            int id = cursor.getInt(cursor
+                    .getColumnIndex(MediaStore.MediaColumns._ID));
+            Uri baseUri = Uri.parse("content://media/external/images/media");
+            return Uri.withAppendedPath(baseUri, "" + id);
+        } else {
+            if (imageFile.exists()) {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DATA, filePath);
+                return context.getContentResolver().insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            } else {
+                return null;
+            }
+        }
+    }
 
 }
