@@ -45,6 +45,7 @@ public class SendMsg extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(SendMsg.this, Chatroom.class);
                 intent.putExtra("title","fans");
+                intent.putExtra("portraitInt",R.mipmap.d);
                 startActivity(intent);
             }
         });
@@ -53,6 +54,8 @@ public class SendMsg extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(SendMsg.this, Chatroom.class);
                 intent.putExtra("title","great");
+                intent.putExtra("portraitInt",R.mipmap.f);
+
                 startActivity(intent);
             }
         });
@@ -61,6 +64,7 @@ public class SendMsg extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(SendMsg.this, Chatroom.class);
                 intent.putExtra("title","me");
+                intent.putExtra("portraitInt",R.mipmap.f);
                 startActivity(intent);
             }
         });
@@ -69,6 +73,7 @@ public class SendMsg extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(SendMsg.this, Chatroom.class);
                 intent.putExtra("title","comm");
+                intent.putExtra("portraitInt",R.mipmap.c);
                 startActivity(intent);
             }
         });
@@ -98,6 +103,7 @@ public class SendMsg extends AppCompatActivity {
             @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(SendMsg.this, Chatroom.class);
                 intent.putExtra("title", adapter.getTitle(position));
+                intent.putExtra("portraitInt",adapter.getPortrait(position));
 //                Intent intent = null;
 //                try {
 //                    intent =  new Intent(ListViewActivity.this, Class.forName("com.ss.android.ugc.chapter1.MainActivity"));
@@ -136,6 +142,10 @@ public class SendMsg extends AppCompatActivity {
 
         public String getTitle(int postion){
             return mData.get(postion).getTitle();
+        }
+
+        public int getPortrait(int postion){
+            return mData.get(postion).getImg();
         }
 
         @Override

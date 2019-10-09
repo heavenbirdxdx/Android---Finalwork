@@ -9,15 +9,16 @@
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="45dp"
+        android:layout_height="30dp"
         android:background="#ffffff"
         android:orientation="horizontal"
         android:gravity="center">
         <ImageView
+            android:id="@+id/portraitMsg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@mipmap/message"
-            android:layout_marginRight="10dp"
+            android:layout_marginRight="5dp"
             />
         <TextView
             android:id="@+id/tv_with_name"
@@ -42,7 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fontFamily="casual"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="14sp"
             android:textStyle="normal"
             tools:text="text" />
@@ -59,11 +60,12 @@
 
         <EditText
             android:id="@+id/ed_say"
+
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:background="#161823"
             android:fadeScrollbars="true"
-            android:focusableInTouchMode="true"
+            android:focusableInTouchMode="false"
             android:gravity="start|center_vertical"
             android:hint="发送消息"
             android:lineSpacingExtra="2dp"
