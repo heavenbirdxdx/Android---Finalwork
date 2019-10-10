@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.bumptech.glide.Glide;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.Feed;
@@ -42,6 +43,7 @@ public class VideoWatch extends AppCompatActivity {
     private Button mBtnRefresh;
     private boolean isplaying = true;
     private MediaController mc;
+//    private LottieAnimationView animationView;
 
 
     public VideoWatch() {
@@ -60,6 +62,8 @@ public class VideoWatch extends AppCompatActivity {
         fetchFeed();
         initRecyclerView();
         refreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiper_refresh_layout);
+//        animationView = findViewById(R.id.animation_view);
+
 //
 //        assert refreshLayout != null;
 //        refreshLayout.setColorSchemeColors(Color.BLUE,Color.RED,Color.GREEN);
@@ -104,6 +108,14 @@ public class VideoWatch extends AppCompatActivity {
                 init(sGSYplayer, url_video, url_image);
                 String user_name = mFeeds.get(i).getUser_name();
                 tv.setText(  user_name);
+                LottieAnimationView animationView = ((MyViewHolder) viewHolder).mLottieAnimationView;
+                animationView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        animationView.playAnimation();
+                    }
+                });
+
             }
 
             @Override public int getItemCount() {
@@ -214,6 +226,8 @@ public class VideoWatch extends AppCompatActivity {
         public TextView textView;
 //        public VideoView videoView;
         public View view;
+        public LottieAnimationView mLottieAnimationView;
+
         public StandardGSYVideoPlayer standardGSYVideoPlayer;
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -221,6 +235,7 @@ public class VideoWatch extends AppCompatActivity {
             textView = itemView.findViewById(R.id.textView_name);
 //            videoView = itemView.findViewById(R.id.ijkPlayer);
             standardGSYVideoPlayer = itemView.findViewById(R.id.ijkPlayer);
+            mLottieAnimationView = itemView.findViewById(R.id.animation_view);
         }
     }
 

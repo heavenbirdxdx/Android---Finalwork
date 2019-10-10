@@ -50,28 +50,23 @@ public class VerticalSeekBarWrapper extends FrameLayout {
 
     private void onSizeChangedTraditionalRotation(int w, int h, int oldw, int oldh) {
         final VerticalSeekBar seekBar = getChildSeekBar();
-
         if (seekBar != null) {
             final int hPadding = getPaddingLeft() + getPaddingRight();
             final int vPadding = getPaddingTop() + getPaddingBottom();
             final LayoutParams lp = (LayoutParams) seekBar.getLayoutParams();
-
             lp.width = ViewGroup.LayoutParams.WRAP_CONTENT;
             lp.height = Math.max(0, h - vPadding);
             seekBar.setLayoutParams(lp);
-
             seekBar.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
 
             final int seekBarMeasuredWidth = seekBar.getMeasuredWidth();
             seekBar.measure(
                     MeasureSpec.makeMeasureSpec(Math.max(0, w - hPadding), MeasureSpec.AT_MOST),
                     MeasureSpec.makeMeasureSpec(Math.max(0, h - vPadding), MeasureSpec.EXACTLY));
-
             lp.gravity = Gravity.TOP | Gravity.LEFT;
             lp.leftMargin = (Math.max(0, w - hPadding) - seekBarMeasuredWidth) / 2;
             seekBar.setLayoutParams(lp);
         }
-
         super.onSizeChanged(w, h, oldw, oldh);
     }
 

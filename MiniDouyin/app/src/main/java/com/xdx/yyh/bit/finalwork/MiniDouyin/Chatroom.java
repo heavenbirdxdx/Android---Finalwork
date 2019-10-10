@@ -1,4 +1,4 @@
-package com.xdx.yyh.bit.finalwork.MiniDouyin.widget;
+package com.xdx.yyh.bit.finalwork.MiniDouyin;
 
 import android.os.Bundle;
 import android.util.Log;

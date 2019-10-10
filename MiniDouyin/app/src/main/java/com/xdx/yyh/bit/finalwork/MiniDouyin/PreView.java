@@ -24,7 +24,7 @@ public class PreView extends AppCompatActivity {
             public void run() {
                 goHomePage();
             }
-        },3000);
+        },2000);
     }
     public void goHomePage(){
         startActivity(new Intent(PreView.this, MainActivity.class));

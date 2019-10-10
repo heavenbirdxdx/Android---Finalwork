@@ -1,7 +1,7 @@
 package com.xdx.yyh.bit.finalwork.MiniDouyin.bean;
 
 public class Person {
-    public final long id;
+    public long id;
     public String num;
     public String name;
     public String birth;

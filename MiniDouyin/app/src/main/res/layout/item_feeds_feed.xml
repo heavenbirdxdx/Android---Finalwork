@@ -10,7 +10,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/feeds_view"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="425dp"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginRight="16dp"
@@ -28,7 +28,7 @@
             <com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer
                 android:id="@+id/ijkPlayer"
                 android:layout_width="match_parent"
-                android:layout_height="325dp"
+                android:layout_height="330dp"
                 android:layout_gravity="center_horizontal"
                 tools:layout_editor_absoluteX="0dp"></com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer>
 
@@ -39,20 +39,27 @@
 
                 <ImageView
                     android:id="@+id/imageView_avatar"
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:layout_gravity="bottom"
-                    android:padding="20dp" />
+                    android:padding="10dp" />
 
                 <TextView
                     android:id="@+id/textView_name"
-                    android:layout_width="232dp"
-                    android:layout_height="75dp"
+                    android:layout_width="175dp"
+                    android:layout_height="100dp"
                     android:layout_gravity="bottom"
-                    android:layout_marginLeft="75dp"
                     android:gravity="center_vertical"
                     android:paddingLeft="0dp"
                     android:textSize="18sp" />
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/animation_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    app:lottie_autoPlay="false"
+                    app:lottie_loop="false"
+                    app:lottie_rawRes="@raw/star" />
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

@@ -24,8 +24,9 @@
         android:roundIcon="@mipmap/cover_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".widget.Chatroom"></activity>
-        <activity android:name=".widget.SendMsg" />
+        <activity android:name=".ChangePersonInfo"></activity>
+        <activity android:name=".Chatroom" />
+        <activity android:name=".SendMsg" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -6,6 +6,7 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Surface;
@@ -24,13 +25,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.LoginPerson;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.PostVideoResponse;
+import com.xdx.yyh.bit.finalwork.MiniDouyin.database.OperatorHelper;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.newtork.IMiniDouyinService;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.utils.ResourceUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -81,6 +85,7 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
 
 //    全局变量用户
     public LoginPerson loginPerson;
+    private OperatorHelper mOperatorHelper = new OperatorHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -533,6 +538,23 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
             public void onResponse(Call<PostVideoResponse> call, Response<PostVideoResponse> response) {
                 Toast.makeText(getApplicationContext(), "Post succeeded", Toast.LENGTH_LONG).show();
                 mBtn.setEnabled(true);
+
+                String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                if(mOperatorHelper.updatePersonDateFromDatabase(timeStamp,
+                        loginPerson.getLoginPerson().getNum())){
+                    loginPerson.getLoginPerson().setDate(timeStamp);
+                }
+                else{
+                    Toast.makeText(getApplicationContext(), "数据库更新错误",
+                            Toast.LENGTH_LONG).show();
+                }
+                Handler mHandler = new Handler();
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        goHomePage();
+                    }
+                },1000);
             }
 
             @Override
@@ -561,4 +583,10 @@ public class CustomCameraActivity extends AppCompatActivity implements SurfaceHo
         );
     }
 
+
+    public void goHomePage(){
+        Intent intent = new Intent();
+        setResult(RESULT_OK,intent);
+        finish();
+    }
 }

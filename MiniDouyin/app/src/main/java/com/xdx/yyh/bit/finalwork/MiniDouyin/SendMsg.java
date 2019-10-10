@@ -1,4 +1,4 @@
-package com.xdx.yyh.bit.finalwork.MiniDouyin.widget;
+package com.xdx.yyh.bit.finalwork.MiniDouyin;
 
 
 import android.content.Context;
@@ -16,7 +16,6 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.xdx.yyh.bit.finalwork.MiniDouyin.R;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.MsgClass;
 
 import java.util.LinkedList;

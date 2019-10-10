@@ -62,7 +62,7 @@
         app:borderWidth="0.0dip"
         app:layout_anchorGravity="bottom|center"
         app:elevation="10dp"
-        app:lottie_autoPlay="false"
+        app:lottie_autoPlay="true"
         app:lottie_loop="true"
         app:lottie_rawRes="@raw/add"
         />

@@ -41,10 +41,10 @@ import com.facebook.stetho.Stetho;
 import com.google.android.material.navigation.NavigationView;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.LoginPerson;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.Person;
+import com.xdx.yyh.bit.finalwork.MiniDouyin.database.OperatorHelper;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.database.PersonDb;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.database.PersonDbHelper;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.utils.Utils;
-import com.xdx.yyh.bit.finalwork.MiniDouyin.widget.SendMsg;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -52,7 +52,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
 @SuppressLint("SdCardPath")
@@ -79,10 +78,16 @@ public class MainActivity extends AppCompatActivity
 
 
     private PersonDbHelper mPersonDbHelper = new PersonDbHelper(this);
+    private OperatorHelper mOperatorHelper = new OperatorHelper(this);
 
     private static final String TAG = "ChangePortrait";
+
     private static final int REQUEST_PORTRAIT_CAMERA = 1;
     private static final int REQUEST_PORTRAIT_STORAGE = 2;
+    private static final int REQUEST_PORTRAIT_CROP_RRTURN = 3;
+    private static final int REQUEST_PERSONINFO_CHANGE = 4;
+    private static final int REQUEST_DATE_CHANGE = 5;
+
     private static final int GRANT_PERMISSION = 3;
     private static final int REQUEST_EXTERNAL_STORAGE = 101;
     private String[] mPermissionsArrays = new String[]{Manifest.permission.CAMERA,
@@ -102,19 +107,17 @@ public class MainActivity extends AppCompatActivity
         View headerLayout = navigationView.inflateHeaderView(R.layout.nav_header_main);
 
 //        -------By yxd ----------------
-//        播放动画
-        LottieAnimationView fab = findViewById(R.id.fab);
-
-        fab.playAnimation();
 
         tv_num = findViewById(R.id.num);
-//        tv_name.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
         tv_name = findViewById(R.id.name);
         tv_birth = findViewById(R.id.birth);
         tv_date = findViewById(R.id.date);
         portrait2 = headerLayout.findViewById(R.id.portrait2);
         tv_name2 = headerLayout.findViewById(R.id.tv_name2);
         tv_birth2 = headerLayout.findViewById(R.id.tv_birth2);
+        LottieAnimationView fab = findViewById(R.id.fab);
+//        全局变量
+        loginPerson = (LoginPerson) getApplication();
 
 //        判断权限
         if (ContextCompat.checkSelfPermission(MainActivity.this,
@@ -135,13 +138,10 @@ public class MainActivity extends AppCompatActivity
 
         }
 
-//        ------------By yxd------------
-
-//        设置权限
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, CustomCameraActivity.class));
+                startActivityForResult(new Intent(MainActivity.this, CustomCameraActivity.class),REQUEST_DATE_CHANGE);
             }
         });
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -152,7 +152,6 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
 
-//        -------By yxd----------------------------
 //        网络连接
         if(!isNetworkAvailable()){
             Toast.makeText(getApplicationContext(), "网络未连接，请查看网络",
@@ -163,7 +162,6 @@ public class MainActivity extends AppCompatActivity
 //        更换头像
         portrait = findViewById(R.id.portrait);
         btn_portrait = findViewById(R.id.btn_portrait);
-//        btn_portrait.playAnimation();
 
         btn_portrait.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -208,10 +206,9 @@ public class MainActivity extends AppCompatActivity
                 alertDialog.show();
             }
         });
-//
-////        预先加入
-//         TODO 插入一条新数据，返回是否插入成功
-        if(!loadPersonInfoFromDatabase("1120172169")){
+
+//        预先加入
+        if(!mOperatorHelper.isExist(loginPerson.getLoginPerson().getNum())){
             SQLiteDatabase db = mPersonDbHelper.getWritableDatabase();
             ContentValues values = new ContentValues();
 
@@ -222,13 +219,37 @@ public class MainActivity extends AppCompatActivity
             values.put(PersonDb.PersonInfo.COLUMN_DATE_TITLE, timeStamp);
             values.put(PersonDb.PersonInfo.COLUMN_PORTRAIT_TITLE,"R.mipmap.yellowchic");
             long newRowId = db.insert(PersonDb.PersonInfo.TABLE_NAME,null,values);
-            loadPersonInfoFromDatabase("1120172169");
         }
 
-//
+//            启动时，将数据库中的loginPerson.getLoginPerson().getNum()的信息加载进来
+        List<Person> people = mOperatorHelper.getPersonInfoFromDatabase(loginPerson.getLoginPerson().getNum());
 
+        if(people.size() > 0){
+            Person person = people.get(0);
+            loginPerson.setLoginPerson(person);
+            tv_num.setText(loginPerson.getLoginPerson().getNum());
+            tv_name.setText(loginPerson.getLoginPerson().getName());
+            tv_birth.setText(loginPerson.getLoginPerson().getBirth());
+            tv_date.setText(loginPerson.getLoginPerson().getDate());
+            tv_name2.setText(loginPerson.getLoginPerson().getName());
+            tv_birth2.setText(loginPerson.getLoginPerson().getBirth());
 
-//        -------By yxd-----------------------------
+            Bitmap bmp;
+            String portraitPath =loginPerson.getLoginPerson().getPortrait();
+            if(portraitPath.equals(new String ("R.mipmap.yellowchic"))){
+                bmp=BitmapFactory.decodeResource(getResources(),R.mipmap.yellowchic);
+            }
+            else{
+                bmp = BitmapFactory.decodeFile(portraitPath);
+            }
+            portrait.setImageBitmap(bmp);
+            portrait2.setImageBitmap(bmp);
+        }
+        else{
+            Toast.makeText(getApplicationContext(), "数据库加载错误",
+                    Toast.LENGTH_LONG).show();
+        }
+
     }
 
 // -------------By yxd --------------------
@@ -243,7 +264,8 @@ public class MainActivity extends AppCompatActivity
         if (resultCode == RESULT_OK) {
 
             if (requestCode == REQUEST_PORTRAIT_CAMERA) {
-                if(updatePersonPortraitFromDatabase(imgFile.getAbsolutePath(),"1120172169")){
+                if(mOperatorHelper.updatePersonPortraitFromDatabase(imgFile.getAbsolutePath(),loginPerson.getLoginPerson().getNum())){
+                    loginPerson.getLoginPerson().setPortrait(imgFile.getAbsolutePath());
                     cropPhoto(getImageContentUri(this,imgFile));
                 }
                 else{
@@ -258,7 +280,8 @@ public class MainActivity extends AppCompatActivity
 //                更新本地数据库
                 Uri imgUri = data.getData();
                 String imgPath = getImagePath(imgUri,null);
-                if(updatePersonPortraitFromDatabase(imgPath,"1120172169")){
+                if(mOperatorHelper.updatePersonPortraitFromDatabase(imgPath,loginPerson.getLoginPerson().getNum())){
+                    loginPerson.getLoginPerson().setPortrait(imgPath);
                     cropPhoto(imgUri);
                 }
                 else{
@@ -266,7 +289,7 @@ public class MainActivity extends AppCompatActivity
                             Toast.LENGTH_LONG).show();
                 }
             }
-            else if(requestCode == 3){
+            else if(requestCode == REQUEST_PORTRAIT_CROP_RRTURN){
                 if (data != null) {
                     bitmap_portrait = data.getExtras().getParcelable("data");
                     if(bitmap_portrait!=null){
@@ -278,6 +301,32 @@ public class MainActivity extends AppCompatActivity
                         portrait2.setImageBitmap(bitmap_portrait);
                     }
                 }
+            }
+            else if(requestCode == REQUEST_PERSONINFO_CHANGE){
+                tv_num.setText(loginPerson.getLoginPerson().getNum());
+                tv_name.setText(loginPerson.getLoginPerson().getName());
+                tv_birth.setText(loginPerson.getLoginPerson().getBirth());
+                tv_date.setText(loginPerson.getLoginPerson().getDate());
+                tv_name2.setText(loginPerson.getLoginPerson().getName());
+                tv_birth2.setText(loginPerson.getLoginPerson().getBirth());
+
+                Bitmap bmp;
+                String portraitPath =loginPerson.getLoginPerson().getPortrait();
+                if(portraitPath.equals(new String ("R.mipmap.yellowchic"))){
+                    bmp=BitmapFactory.decodeResource(getResources(),R.mipmap.yellowchic);
+//                portrait.setImageBitmap(bmp);
+//                portrait2.setImageBitmap(bmp);
+
+                }
+                else{
+                    bmp = BitmapFactory.decodeFile(portraitPath);
+//                cropPhoto(Uri.fromFile(new File(portraitPath)));
+                }
+                portrait.setImageBitmap(bmp);
+                portrait2.setImageBitmap(bmp);
+            }
+            else if(requestCode == REQUEST_DATE_CHANGE){
+                tv_date.setText(loginPerson.getLoginPerson().getDate());
             }
 
         }
@@ -304,7 +353,7 @@ public class MainActivity extends AppCompatActivity
         intent.putExtra("return-data", true);
         intent.putExtra("noFaceDetection", true);
 
-        this.startActivityForResult(intent, 3);
+        this.startActivityForResult(intent, REQUEST_PORTRAIT_CROP_RRTURN);
     }
 
 //    有些错误，未调用，备用
@@ -412,11 +461,14 @@ public class MainActivity extends AppCompatActivity
                                 {Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.CAMERA},
                         REQUEST_CODE);
             else {
+//                拍摄视频
                 startActivity(new Intent(MainActivity.this, CustomCameraActivity.class));
             }
-        } else if (id == R.id.nav_share) {
-
+        } else if (id == R.id.nav_setting) {
+//            设置功能
+            startActivityForResult(new Intent(MainActivity.this, ChangePersonInfo.class), REQUEST_PERSONINFO_CHANGE );
         } else if (id == R.id.nav_send) {
+//            消息页面
             startActivity(new Intent(MainActivity.this, SendMsg.class));
         }
 
@@ -454,109 +506,6 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
     }
 
-//    -------------by  yxd------------
-//    启动时，将数据库中的1120172169的信息加载进来
-    public boolean loadPersonInfoFromDatabase(String number){
-        SQLiteDatabase db = mPersonDbHelper.getReadableDatabase();
-        String[] projection = {
-                PersonDb.PersonInfo.COLUMN_ID_TITLE,
-                PersonDb.PersonInfo.COLUMN_NUM_TITLE,
-                PersonDb.PersonInfo.COLUMN_NAME_TITLE,
-                PersonDb.PersonInfo.COLUMN_BIRTHDAY_TITLE,
-                PersonDb.PersonInfo.COLUMN_DATE_TITLE ,
-                PersonDb.PersonInfo.COLUMN_PORTRAIT_TITLE
-        };
-        String selection = PersonDb.PersonInfo.COLUMN_NUM_TITLE + " =" + number;
-
-//        用于替换上一个参数中的 ？ ,顺序对应selection中？的顺序。格式限制为String格式。
-//        String[] selectionArgs = {"My Title"};
-
-//        排序方式
-        String sortOrder =
-                PersonDb.PersonInfo.COLUMN_ID_TITLE + " ASC";
-        if(db == null){
-            return false;
-        }
-        List<Person> result = new LinkedList<>();
-        Cursor cursor = null;
-
-        try{
-            cursor = db.query(PersonDb.PersonInfo.TABLE_NAME, projection,
-                    selection, null,null,null, sortOrder);
-            while(cursor.moveToNext()){
-                int id = cursor.getInt(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_ID_TITLE));
-                String num = cursor.getString(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_NUM_TITLE));
-                String name = cursor.getString(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_NAME_TITLE));
-                String birth = cursor.getString(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_BIRTHDAY_TITLE));
-                String portraitPath = cursor.getString(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_PORTRAIT_TITLE));
-                String dateMs = cursor.getString(cursor.getColumnIndex(PersonDb.PersonInfo.COLUMN_DATE_TITLE));
-                Person person = new Person(id);
-                person.setNum(num);
-                person.setName(name);
-                person.setBirth(birth);
-                person.setDate(dateMs);
-                person.setPortrait(portraitPath);
-
-                result.add(person);
-
-            }
-
-            Person person = result.get(0);
-
-            tv_num.setText(person.getNum());
-            tv_name.setText(person.getName());
-            tv_birth.setText(person.getBirth());
-            tv_date.setText(person.getDate());
-            tv_name2.setText(person.getName());
-            tv_birth2.setText(person.getBirth());
-
-            Bitmap bmp;
-            String portraitPath =person.getPortrait();
-            if(portraitPath.equals(new String ("R.mipmap.yellowchic"))){
-                bmp=BitmapFactory.decodeResource(getResources(),R.mipmap.yellowchic);
-//                portrait.setImageBitmap(bmp);
-//                portrait2.setImageBitmap(bmp);
-
-            }
-            else{
-                bmp = BitmapFactory.decodeFile(portraitPath);
-//                cropPhoto(Uri.fromFile(new File(portraitPath)));
-            }
-            portrait.setImageBitmap(bmp);
-            portrait2.setImageBitmap(bmp);
-
-            loginPerson = (LoginPerson)getApplication();
-            loginPerson.setLoginPerson(person);
-
-        }finally {
-            cursor.close();
-            if(result.size()!=0){
-                return true;
-            }
-            else
-                return false;
-        }
-    }
-
-//    更新本地数据库的头像portrait
-    public boolean updatePersonPortraitFromDatabase(String imgPath, String num){
-        SQLiteDatabase db = mPersonDbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-
-        values.put(PersonDb.PersonInfo.COLUMN_PORTRAIT_TITLE,
-                imgPath);
-
-        String[] numArray = {"1120172169"};
-
-        int count = db.update(PersonDb.PersonInfo.TABLE_NAME, values,
-                PersonDb.PersonInfo.COLUMN_NUM_TITLE + "=?", numArray);
-
-        db.close();
-        if(count > 0)
-            return true;
-        else
-            return false;
-    }
 
 //    content://格式的Uri转path
     private String getImagePath(Uri uri,String selection){

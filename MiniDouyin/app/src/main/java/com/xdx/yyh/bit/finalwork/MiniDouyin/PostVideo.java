@@ -8,6 +8,7 @@ import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -19,12 +20,15 @@ import androidx.core.app.ActivityCompat;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.LoginPerson;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.bean.PostVideoResponse;
+import com.xdx.yyh.bit.finalwork.MiniDouyin.database.OperatorHelper;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.newtork.IMiniDouyinService;
 import com.xdx.yyh.bit.finalwork.MiniDouyin.utils.ResourceUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -54,6 +58,7 @@ public class PostVideo extends AppCompatActivity {
     private Uri videoUri;
 
     public LoginPerson loginPerson;
+    private OperatorHelper mOperatorHelper = new OperatorHelper(this);
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,6 +127,23 @@ public class PostVideo extends AppCompatActivity {
             public void onResponse(Call<PostVideoResponse> call, Response<PostVideoResponse> response) {
                 Toast.makeText(getApplicationContext(), "Post succeeded", Toast.LENGTH_LONG).show();
                 button_post.setEnabled(true);
+
+                String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                if(mOperatorHelper.updatePersonDateFromDatabase(timeStamp,
+                        loginPerson.getLoginPerson().getNum())){
+                    loginPerson.getLoginPerson().setDate(timeStamp);
+                }
+                else{
+                    Toast.makeText(getApplicationContext(), "数据库更新错误",
+                            Toast.LENGTH_LONG).show();
+                }
+                Handler mHandler = new Handler();
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        goHomePage();
+                    }
+                },1000);
             }
 
             @Override
@@ -192,5 +214,12 @@ public class PostVideo extends AppCompatActivity {
             return true;
         }
     }
+
+    public void goHomePage(){
+        Intent intent = new Intent();
+        setResult(RESULT_OK,intent);
+        finish();
+    }
+
 
 }
